@@ -54,4 +54,46 @@ cargo install diesel_cli --no-default-features --features postgres
 7. Use in handlers
    let account = account_repo::get_account(123, &conn)?;
 
-   
+
+
+
+   Step 1: Install Prerequisites
+bash
+# Install Rust (if not already)
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+
+# Install Diesel CLI
+cargo install diesel_cli --no-default-features --features postgres
+
+
+Step 4: Set Up Database
+bash
+# Start Docker
+docker-compose up -d
+
+# Wait for PostgreSQL to be ready
+sleep 10
+
+# Create .env from example
+cp .env.example .env
+
+# Initialize Diesel
+diesel setup
+
+# Create migrations
+diesel migration generate create_accounts
+diesel migration generate create_api_keys
+diesel migration generate create_transactions
+diesel migration generate create_webhook_endpoints
+diesel migration generate create_webhook_events
+
+# Copy migration SQL from guide into migration files
+# Then run migrations
+diesel migration run
+
+# Generate schema
+diesel print-schema > src/schema.rs
+
+# Reset database (drop and create (this will drop all data))
+# diesel database reset

@@ -11,7 +11,12 @@ tower = { version = "0.4", features = ["util"] }
 tower-http = { version = "0.5", features = ["cors", "trace", "compression-br"] }
 
 # Database
-diesel = { version = "2.1", features = ["postgres", "r2d2", "chrono"] }
+diesel = { version = "2.1", features = [
+    "postgres",
+    "r2d2",
+    "chrono",
+    "serde_json",
+] }
 r2d2 = "0.8"
 
 # Serialization
@@ -46,6 +51,8 @@ uuid = { version = "1.0", features = ["v4", "serde"] }
 # Utilities
 parking_lot = "0.12"
 async-trait = "0.1"
+diesel-derive-enum = { version = "3.0.0-beta.1", features = ["postgres"] }
+hex = "0.4.3"
 
 [dev-dependencies]
 tokio-test = "0.4"

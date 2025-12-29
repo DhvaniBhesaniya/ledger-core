@@ -1,13 +1,13 @@
 -- Your SQL goes here
--- migrations/YYYY-MM-DD-HH0000_create_transactions/up.sql
+-- migrations/2025-12-29-000003_create_transactions/up.sql
 CREATE TYPE transaction_type AS ENUM ('credit', 'debit', 'transfer');
 CREATE TYPE transaction_status AS ENUM ('pending', 'completed', 'failed', 'cancelled');
 
 CREATE TABLE transactions (
     id BIGSERIAL PRIMARY KEY,
-    from_account_id BIGINT REFERENCES accounts(id),
-    to_account_id BIGINT REFERENCES accounts(id),
-    amount BIGINT NOT NULL,  -- in cents
+    from_account_id BIGINT,
+    to_account_id BIGINT,
+    amount BIGINT NOT NULL,
     tx_type transaction_type NOT NULL,
     status transaction_status NOT NULL DEFAULT 'pending',
     description VARCHAR(500),

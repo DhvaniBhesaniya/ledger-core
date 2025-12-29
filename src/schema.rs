@@ -22,6 +22,7 @@ diesel::table! {
         balance -> Int8,
         #[max_length = 3]
         currency -> Varchar,
+        is_active -> Bool,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -33,12 +34,12 @@ diesel::table! {
         account_id -> Int8,
         #[max_length = 255]
         key_hash -> Varchar,
-        #[max_length = 8]
+        #[max_length = 20]
         key_prefix -> Varchar,
         #[max_length = 255]
         name -> Nullable<Varchar>,
         is_active -> Nullable<Bool>,
-        rate_limit_per_minute -> Nullable<Int4>,
+        rate_limit_per_minute -> Int4,
         last_used_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
@@ -87,8 +88,8 @@ diesel::table! {
         #[max_length = 255]
         secret -> Varchar,
         events -> Jsonb,
-        is_active -> Nullable<Bool>,
-        retry_max_attempts -> Nullable<Int4>,
+        is_active -> Bool,
+        retry_max_attempts -> Int4,
         created_at -> Timestamp,
         updated_at -> Timestamp,
     }
@@ -104,8 +105,8 @@ diesel::table! {
         #[max_length = 100]
         event_type -> Varchar,
         payload -> Jsonb,
-        status -> Nullable<WebhookStatus>,
-        attempt_count -> Nullable<Int4>,
+        status -> WebhookStatus,
+        attempt_count -> Int4,
         next_retry_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,

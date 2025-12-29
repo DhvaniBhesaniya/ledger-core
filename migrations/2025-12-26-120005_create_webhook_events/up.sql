@@ -1,5 +1,5 @@
 -- Your SQL goes here
--- migrations/YYYY-MM-DD-HH0000_create_webhook_events/up.sql
+-- migrations/2025-12-29-000005_create_webhook_events/up.sql
 CREATE TYPE webhook_status AS ENUM ('pending', 'delivered', 'failed');
 
 CREATE TABLE webhook_events (
@@ -7,8 +7,8 @@ CREATE TABLE webhook_events (
     webhook_endpoint_id BIGINT NOT NULL REFERENCES webhook_endpoints(id),
     event_type VARCHAR(100) NOT NULL,
     payload JSONB NOT NULL,
-    status webhook_status DEFAULT 'pending',
-    attempt_count INT DEFAULT 0,
+    status webhook_status NOT NULL DEFAULT 'pending',
+    attempt_count INT NOT NULL DEFAULT 0,
     next_retry_at TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
