@@ -1,9 +1,4 @@
-use crate::{
-    error::AppError,
-    models::*,
-    repositories,
-    utils::crypto,
-};
+use crate::{error::AppError, models::*, repositories, utils::crypto};
 use diesel::PgConnection;
 use uuid::Uuid;
 
@@ -13,7 +8,8 @@ pub fn generate_key(
     conn: &mut PgConnection,
 ) -> Result<GenerateApiKeyResponse, AppError> {
     // Generate random API key
-    let raw_key = format!("sk_prod_{}", Uuid::new_v4().to_string());
+    let prefix = std::env::var("API_KEY_PREFIX").unwrap_or_else(|_| "sk_prod_".to_string());
+    let raw_key = format!("{}{}", prefix, Uuid::new_v4().to_string());
     let key_hash = crypto::hash_api_key(&raw_key);
     let key_prefix = raw_key[..20].to_string();
 

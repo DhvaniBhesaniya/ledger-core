@@ -41,9 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let cors = CorsLayer::permissive();
 
-    let app = Router::new()
-        // Health check
-        .route("/health", get(handlers::health::health))
+    let protected_routes = Router::new()
         // Accounts
         .route(
             "/api/accounts",
@@ -66,8 +64,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "/api/transactions/:id",
             get(handlers::transaction_handlers::get_transaction),
         )
-        // API Keys
-        .route("/api/keys", post(handlers::api_key_handlers::generate_key))
+        // // API Keys
+        // .route("/api/keys", post(handlers::api_key_handlers::generate_key))
         // Webhooks
         .route(
             "/api/webhooks",
@@ -81,12 +79,18 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             "/api/webhooks/:id",
             axum::routing::delete(handlers::webhook_handlers::delete_webhook),
         )
-        // Middleware
-        .layer(cors)
         .layer(axum_middleware::from_fn_with_state(
             state.clone(),
             api_key_auth_middleware,
-        ))
+        ));
+
+    let app = Router::new()
+        // Health check - Public
+        .route("/health", get(handlers::health::health))
+        // API Keys
+        .route("/api/keys", post(handlers::api_key_handlers::generate_key))
+        .merge(protected_routes)
+        .layer(cors)
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;

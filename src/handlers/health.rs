@@ -1,3 +1,4 @@
 pub async fn health() -> &'static str {
-    "OK"
+    // println!("OK.");
+    "OK\n"
 }
