@@ -1,0 +1,51 @@
+[package]
+name = "ledger-core"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# Web framework
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1", features = ["full"] }
+tower = { version = "0.4", features = ["util"] }
+tower-http = { version = "0.5", features = ["cors", "trace", "compression-br"] }
+
+# Database
+diesel = { version = "2.1", features = ["postgres", "r2d2", "chrono"] }
+r2d2 = "0.8"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# Time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Environment
+dotenvy = "0.15"
+
+# Security
+hmac = "0.12"
+sha2 = "0.10"
+argon2 = "0.5"
+rand = "0.8"
+
+# HTTP Client (for webhooks)
+reqwest = { version = "0.11", features = ["json"] }
+
+# Logging
+tracing = "0.1"
+tracing-subscriber = "0.3"
+
+# Error Handling
+thiserror = "1.0"
+
+# UUID
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Utilities
+parking_lot = "0.12"
+async-trait = "0.1"
+
+[dev-dependencies]
+tokio-test = "0.4"

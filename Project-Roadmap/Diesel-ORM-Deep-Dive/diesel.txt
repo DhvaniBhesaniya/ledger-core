@@ -1,0 +1,35 @@
+What is Diesel?
+Diesel is a type-safe, compile-time checked ORM for Rust. Unlike SQL, it ensures:
+
+✅ Type Safety: Compiler catches schema mismatches at compile time
+
+✅ Query Builder: Fluent API instead of string SQL
+
+✅ No Runtime Errors: Bad queries fail to compile, not at runtime
+
+✅ Performance: Generates optimized SQL code
+
+✅ Migrations: Version control for database schema changes
+
+
+YOUR RUST CODE              DIESEL ORM              DATABASE
+─────────────────           ──────────               ────────
+
+Diesel::derive()
+   ↓
+#[derive(Queryable)]   ←→  Introspects     ←→   PostgreSQL
+ struct User {             schema.rs             information
+    id: i32,                                      schema
+    name: String,
+    email: String,
+ }
+
+query builder
+ users::table
+  .filter(name.eq("Alice"))
+  .load::<User>(&conn)     Compiles      ←→   Checks table
+                           to SQL             & columns exist
+        ↓
+   SELECT * FROM users
+   WHERE name = 'Alice'    Type-safe      ←→   Returns Vec<User>
+                           result

@@ -1,0 +1,57 @@
+dhvani@inventyv:~/personal_work/ledger-core$ docker compose up -d
+[+] Running 2/2
+ ✔ Container transaction_service_db       Healthy                                                                                                                                                            12.2s 
+ ✔ Container transaction_service_adminer  Started                                                                                                                                                            12.4s 
+dhvani@inventyv:~/personal_work/ledger-core$ docker ps -a
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                    PORTS                                         NAMES
+c42d0629ab21   adminer:latest       "entrypoint.sh docke…"   20 seconds ago   Up 7 seconds              0.0.0.0:8081->8080/tcp, [::]:8081->8080/tcp   transaction_service_adminer
+0ee81db401cf   postgres:15-alpine   "docker-entrypoint.s…"   20 seconds ago   Up 18 seconds (healthy)   0.0.0.0:5432->5432/tcp, [::]:5432->5432/tcp   transaction_service_db
+dhvani@inventyv:~/personal_work/ledger-core$ docker compose down
+[+] Running 3/3
+ ✔ Container transaction_service_adminer    Removed                                                                                                                                                           0.2s 
+ ✔ Container transaction_service_db         Removed                                                                                                                                                           0.2s 
+ ✔ Network ledger-core_transaction_network  Removed                                                                                                                                                           0.2s 
+dhvani@inventyv:~/personal_work/ledger-core$
+
+
+
+
+
+
+
+
+sudo apt-get update
+sudo apt-get install libpq-dev
+
+# Uninstall current diesel_cli
+cargo uninstall diesel_cli
+
+# Install diesel_cli with postgres feature only
+cargo install diesel_cli --no-default-features --features postgres
+
+
+
+
+1. Create migration
+   diesel migration generate create_accounts
+   
+2. Write SQL in up.sql
+   CREATE TABLE accounts (...)
+   
+3. Run migration
+   diesel migration run
+   
+4. Auto-generate Rust schema
+   diesel print-schema > src/schema.rs
+   
+5. Define models in models.rs
+   #[derive(Queryable, Selectable)]
+   pub struct Account { ... }
+   
+6. Write repository functions
+   pub fn get_account(id: i64, conn: &mut PgConnection) -> ...
+   
+7. Use in handlers
+   let account = account_repo::get_account(123, &conn)?;
+
+   

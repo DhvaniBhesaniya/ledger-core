@@ -1,0 +1,136 @@
+┌─────────────────────────────────────────────────────────────────┐
+│                        External Clients                         │
+│              (Business Applications via HTTPS)                  │
+└──────┬──────────────────────────────────────────────────────────┘
+       │ HTTPS
+       ↓
+┌─────────────────────────────────────────────────────────────────┐
+│                      API Gateway / Proxy                        │
+│                    (Optional: Load Balancer)                    │
+└──────┬──────────────────────────────────────────────────────────┘
+       │
+       ↓
+┌──────────────────────────────────────────────────────────────────┐
+│                    AXUM WEB SERVER (Port 8080)                   │
+│ ┌────────────────────────────────────────────────────────────┐  │
+│ │                    Middleware Stack                        │  │
+│ │  ┌──────────────────────────────────────────────────────┐ │  │
+│ │  │ 1. CORS Layer                                        │ │  │
+│ │  │    ├─ Allow cross-origin requests                   │ │  │
+│ │  │    └─ Handle preflight OPTIONS                      │ │  │
+│ │  │                                                      │ │  │
+│ │  │ 2. Request Logging Middleware                       │ │  │
+│ │  │    ├─ Log all requests/responses                    │ │  │
+│ │  │    └─ Include trace IDs for debugging               │ │  │
+│ │  │                                                      │ │  │
+│ │  │ 3. Rate Limiting Middleware                         │ │  │
+│ │  │    ├─ Token bucket per API key                      │ │  │
+│ │  │    ├─ Global & per-endpoint limits                  │ │  │
+│ │  │    └─ Return 429 when exceeded                      │ │  │
+│ │  │                                                      │ │  │
+│ │  │ 4. API Key Authentication Middleware                │ │  │
+│ │  │    ├─ Extract from X-API-Key header                 │ │  │
+│ │  │    ├─ Verify against database                       │ │  │
+│ │  │    └─ Attach account context to request             │ │  │
+│ │  │                                                      │ │  │
+│ │  │ 5. Idempotency Middleware                           │ │  │
+│ │  │    ├─ Extract Idempotency-Key header                │ │  │
+│ │  │    ├─ Check cache for previous response             │ │  │
+│ │  │    └─ Return cached response if found               │ │  │
+│ │  │                                                      │ │  │
+│ │  │ 6. Request Body Validation                          │ │  │
+│ │  │    └─ JSON schema validation                        │ │  │
+│ │  └──────────────────────────────────────────────────────┘ │  │
+│ │                                                            │  │
+│ │ ┌────────────────────────────────────────────────────────┐ │  │
+│ │ │           Route Handlers / Endpoints                   │ │  │
+│ │ │                                                        │ │  │
+│ │ │ POST /api/auth/generate-key                          │ │  │
+│ │ │ POST /api/accounts                                   │ │  │
+│ │ │ GET  /api/accounts/:id/balance                       │ │  │
+│ │ │ POST /api/transactions                               │ │  │
+│ │ │ GET  /api/transactions/:id                           │ │  │
+│ │ │ POST /api/webhooks/register                          │ │  │
+│ │ │ DELETE /api/webhooks/:id                             │ │  │
+│ │ │ GET  /health                                         │ │  │
+│ │ │                                                        │ │  │
+│ │ └────────────────────────────────────────────────────────┘ │  │
+│ │                                                            │  │
+│ │ ┌────────────────────────────────────────────────────────┐ │  │
+│ │ │       Business Logic Layer (Services)                 │ │  │
+│ │ │                                                        │ │  │
+│ │ │ ├─ AccountService (balance queries)                  │ │  │
+│ │ │ ├─ TransactionService (credit/debit/transfer)        │ │  │
+│ │ │ ├─ AuthService (API key management)                  │ │  │
+│ │ │ ├─ WebhookService (delivery & retries)               │ │  │
+│ │ │ └─ NotificationService (event triggering)            │ │  │
+│ │ │                                                        │ │  │
+│ │ └────────────────────────────────────────────────────────┘ │  │
+│ │                                                            │  │
+│ │ ┌────────────────────────────────────────────────────────┐ │  │
+│ │ │    Data Access Layer (Diesel Queries)                 │ │  │
+│ │ │                                                        │ │  │
+│ │ │ ├─ account_repository (insert/update/query)          │ │  │
+│ │ │ ├─ transaction_repository                            │ │  │
+│ │ │ ├─ api_key_repository                                │ │  │
+│ │ │ ├─ webhook_repository                                │ │  │
+│ │ │ └─ webhook_event_repository                          │ │  │
+│ │ │                                                        │ │  │
+│ │ └────────────────────────────────────────────────────────┘ │  │
+│ └────────────────────────────────────────────────────────────┘  │
+│                             ↓                                    │
+│                    Database Connection Pool                      │
+│                    (r2d2 with Diesel)                           │
+└──────────────────────────┬──────────────────────────────────────┘
+                           │
+                           ↓
+        ┌──────────────────────────────────────────┐
+        │     PostgreSQL Database (Docker)         │
+        │                                          │
+        │  Tables:                                 │
+        │  ├─ accounts                             │
+        │  ├─ api_keys                             │
+        │  ├─ transactions                         │
+        │  ├─ webhook_endpoints                    │
+        │  ├─ webhook_events                       │
+        │  ├─ webhook_deliveries                   │
+        │  ├─ idempotency_cache                    │
+        │  └─ audit_logs                           │
+        │                                          │
+        └──────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────┐
+│         Async Background Worker (Tokio)                │
+│                                                        │
+│  Webhook Delivery Loop:                               │
+│  ├─ Poll webhook_events from queue                    │
+│  ├─ For each event:                                   │
+│  │  ├─ Get webhook endpoint                           │
+│  │  ├─ Generate HMAC signature                        │
+│  │  ├─ POST to webhook URL                            │
+│  │  ├─ Handle response:                               │
+│  │  │  ├─ 200 → Mark as delivered                     │
+│  │  │  ├─ 4xx → Permanent failure (dead letter)       │
+│  │  │  ├─ 5xx → Retry with backoff                    │
+│  │  │  └─ Timeout → Exponential backoff               │
+│  │  └─ Max retries (10) → Dead letter queue           │
+│  │                                                    │
+│  └─ Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s..  │
+│     (with jitter: ±10%)                              │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+
+┌────────────────────────────────────────────────────────┐
+│    External Webhook Consumer Applications              │
+│         (Customer's Webhook Endpoints)                 │
+│                                                        │
+│    Expects: POST /webhooks/transactions               │
+│    Body: {                                             │
+│      "id": "evt_xxx",                                 │
+│      "type": "transaction.created",                   │
+│      "data": {...transaction details...},             │
+│      "created_at": "2025-12-26T10:30:00Z",            │
+│      "signature": "sha256=abc123..."                  │
+│    }                                                   │
+│                                                        │
+└────────────────────────────────────────────────────────┘
