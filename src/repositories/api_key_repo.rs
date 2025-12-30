@@ -26,3 +26,19 @@ pub fn update_last_used(id: i64, conn: &mut PgConnection) -> Result<(), AppError
         .map_err(|e| AppError::DatabaseError(e.to_string()))?;
     Ok(())
 }
+
+pub fn list_api_keys_by_account(
+    account_id: i64,
+    conn: &mut PgConnection,
+) -> Result<Vec<ApiKey>, AppError> {
+    api_keys::table
+        .filter(api_keys::account_id.eq(account_id))
+        .load::<ApiKey>(conn)
+        .map_err(|e| AppError::DatabaseError(e.to_string()))
+}
+
+pub fn list_all_api_keys(conn: &mut PgConnection) -> Result<Vec<ApiKey>, AppError> {
+    api_keys::table
+        .load::<ApiKey>(conn)
+        .map_err(|e| AppError::DatabaseError(e.to_string()))
+}

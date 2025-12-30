@@ -46,3 +46,29 @@ pub struct GenerateApiKeyRequest {
     pub name: Option<String>,
     pub rate_limit_per_minute: Option<i32>,
 }
+#[derive(Debug, Serialize)]
+pub struct ApiKeyResponse {
+    pub id: i64,
+    pub account_id: i64,
+    pub key_prefix: String,
+    pub name: Option<String>,
+    pub is_active: bool,
+    pub rate_limit_per_minute: i32,
+    pub last_used_at: Option<NaiveDateTime>,
+    pub created_at: NaiveDateTime,
+}
+
+impl From<ApiKey> for ApiKeyResponse {
+    fn from(key: ApiKey) -> Self {
+        ApiKeyResponse {
+            id: key.id,
+            account_id: key.account_id,
+            key_prefix: key.key_prefix,
+            name: key.name,
+            is_active: key.is_active.unwrap_or(true),
+            rate_limit_per_minute: key.rate_limit_per_minute,
+            last_used_at: key.last_used_at,
+            created_at: key.created_at,
+        }
+    }
+}

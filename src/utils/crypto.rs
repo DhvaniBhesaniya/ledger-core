@@ -19,8 +19,6 @@ pub fn generate_webhook_signature(timestamp: i64, body: &str, secret: &str) -> S
 
 #[cfg(test)]
 mod tests {
-    use uuid::Uuid;
-
     use super::*;
 
     #[test]

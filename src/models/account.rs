@@ -53,3 +53,9 @@ impl From<Account> for AccountResponse {
         }
     }
 }
+
+#[derive(Debug, Serialize)]
+pub struct AccountCreationResponse {
+    pub account: AccountResponse,
+    pub secret_api_key: String,
+}

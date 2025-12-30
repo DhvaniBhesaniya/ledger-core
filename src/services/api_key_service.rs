@@ -31,3 +31,16 @@ pub fn generate_key(
         key_id: api_key.id,
     })
 }
+
+pub fn list_api_keys(
+    account_id: i64,
+    conn: &mut PgConnection,
+) -> Result<Vec<ApiKeyResponse>, AppError> {
+    let keys = repositories::list_api_keys_by_account(account_id, conn)?;
+    Ok(keys.into_iter().map(Into::into).collect())
+}
+
+pub fn list_all_api_keys(conn: &mut PgConnection) -> Result<Vec<ApiKeyResponse>, AppError> {
+    let keys = repositories::list_all_api_keys(conn)?;
+    Ok(keys.into_iter().map(Into::into).collect())
+}

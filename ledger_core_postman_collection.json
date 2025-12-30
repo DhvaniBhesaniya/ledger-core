@@ -86,6 +86,32 @@
                         }
                     },
                     "response": []
+                },
+                {
+                    "name": "List Account Keys",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{api_key}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/1/keys",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "1",
+                                "keys"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
             ]
         },
@@ -155,6 +181,30 @@
         {
             "name": "API Keys",
             "item": [
+                {
+                    "name": "List All Keys (Admin)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{api_key}}",
+                                "type": "text"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/keys",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "keys"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
                 {
                     "name": "Generate API Key",
                     "request": {

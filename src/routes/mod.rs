@@ -21,6 +21,10 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/accounts/:id/balance",
             get(handlers::account_handlers::get_balance),
         )
+        .route(
+            "/api/accounts/:id/keys",
+            get(handlers::api_key_handlers::get_api_keys),
+        )
         // Transactions
         .route(
             "/api/transactions",
@@ -43,6 +47,11 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/webhooks/:id",
             delete(handlers::webhook_handlers::delete_webhook),
         )
+        // Admin
+        .route(
+            "/api/keys_list",
+            get(handlers::api_key_handlers::get_all_api_keys),
+        )
         .layer(axum_middleware::from_fn_with_state(
             state.clone(),
             api_key_auth_middleware,
@@ -52,7 +61,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         // Health check - Public
         .route("/health", get(handlers::health::health))
         // API Keys
-        .route("/api/keys", post(handlers::api_key_handlers::generate_key))
+        .route("/api/key_generate", post(handlers::api_key_handlers::generate_key))
         .merge(protected_routes)
         .with_state(state)
 }
