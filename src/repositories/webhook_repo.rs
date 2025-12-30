@@ -1,9 +1,9 @@
 #![allow(dead_code)]
-use crate::error::AppError;
 use crate::models::{
     NewWebhookEndpoint, NewWebhookEvent, WebhookEndpoint, WebhookEvent, WebhookStatus,
 };
 use crate::schema::{webhook_endpoints, webhook_events};
+use crate::utils::app_error::AppError;
 use diesel::prelude::*;
 
 pub fn create_webhook_endpoint(

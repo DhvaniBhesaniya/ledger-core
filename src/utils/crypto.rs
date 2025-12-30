@@ -39,7 +39,10 @@ mod tests {
         // println!("Key Prefix: {}", key_prefix);
 
         // Hash should be consistent
-        assert_eq!(hash1,"62ed4404305fafaa9061656b8c27f1611dff56e0b641f9ff5e7cd1e06ff075a7");
+        assert_eq!(
+            hash1,
+            "62ed4404305fafaa9061656b8c27f1611dff56e0b641f9ff5e7cd1e06ff075a7"
+        );
 
         // Hash should be SHA256 length (64 chars)
         assert_eq!(hash1.len(), 64);

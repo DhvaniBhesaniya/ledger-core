@@ -1,6 +1,6 @@
-use crate::error::AppError;
 use crate::models::{ApiKey, NewApiKey};
 use crate::schema::api_keys;
+use crate::utils::app_error::AppError;
 use chrono::Utc;
 use diesel::prelude::*;
 

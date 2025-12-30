@@ -1,7 +1,7 @@
 #![allow(dead_code)]
-use crate::error::AppError;
 use crate::models::{NewTransaction, Transaction, TransactionStatus};
 use crate::schema::transactions;
+use crate::utils::app_error::AppError;
 use diesel::prelude::*;
 
 pub fn create_transaction(

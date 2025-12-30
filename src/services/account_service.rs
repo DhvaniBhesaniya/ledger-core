@@ -1,8 +1,4 @@
-use crate::{
-    error::AppError,
-    models::*,
-    repositories,
-};
+use crate::{models::*, repositories, utils::app_error::AppError};
 use diesel::PgConnection;
 
 pub fn create_account(
@@ -20,18 +16,12 @@ pub fn create_account(
     Ok(account.into())
 }
 
-pub fn get_account(
-    id: i64,
-    conn: &mut PgConnection,
-) -> Result<AccountResponse, AppError> {
+pub fn get_account(id: i64, conn: &mut PgConnection) -> Result<AccountResponse, AppError> {
     let account = repositories::get_account_by_id(id, conn)?;
     Ok(account.into())
 }
 
-pub fn get_balance(
-    id: i64,
-    conn: &mut PgConnection,
-) -> Result<i64, AppError> {
+pub fn get_balance(id: i64, conn: &mut PgConnection) -> Result<i64, AppError> {
     let account = repositories::get_account_by_id(id, conn)?;
     Ok(account.balance)
 }

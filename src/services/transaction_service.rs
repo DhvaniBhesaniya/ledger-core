@@ -1,4 +1,4 @@
-use crate::{error::AppError, models::*, repositories};
+use crate::{models::*, repositories, utils::app_error::AppError};
 use diesel::PgConnection;
 
 pub fn create_transaction(

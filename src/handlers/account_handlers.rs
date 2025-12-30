@@ -3,11 +3,11 @@ use axum::{
     Extension, Json,
 };
 use std::sync::Arc;
-use crate::{AppState, error::AppError, models::*, middleware::ApiKeyAuth, services};
+use crate::{AppState, utils::app_error::AppError, models::*, middleware::ApiKeyAuth, services};
 
 pub async fn create_account(
     State(state): State<Arc<AppState>>,
-    Extension(_auth): Extension<ApiKeyAuth>,
+    // Extension(_auth): Extension<ApiKeyAuth>,
     Json(req): Json<CreateAccountRequest>,
 ) -> Result<Json<AccountResponse>, AppError> {
     let mut conn = state.db_pool.get()

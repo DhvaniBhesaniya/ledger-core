@@ -1,6 +1,7 @@
-use crate::{AppState, error::AppError, repositories};
+use crate::{AppState, repositories, utils::app_error::AppError};
 use axum::{
     extract::{Request, State},
+    http::Method,
     middleware::Next,
     response::Response,
 };
@@ -10,8 +11,8 @@ use std::sync::Arc;
 #[derive(Clone, Debug)]
 pub struct ApiKeyAuth {
     pub account_id: i64,
-    pub api_key_id: i64,
-    pub rate_limit: i32,
+    // pub api_key_id: i64,
+    // pub rate_limit: i32,
 }
 
 pub async fn api_key_auth_middleware(
@@ -19,6 +20,10 @@ pub async fn api_key_auth_middleware(
     mut req: Request,
     next: Next,
 ) -> Result<Response, AppError> {
+    if req.uri().path() == "/api/accounts" && req.method() == Method::POST {
+        return Ok(next.run(req).await);
+    }
+
     let api_key = req
         .headers()
         .get("x-api-key")
@@ -35,12 +40,20 @@ pub async fn api_key_auth_middleware(
 
     let api_key_record = repositories::get_api_key_by_hash(&key_hash, &mut conn)?;
 
+    if state
+        .rate_limiter
+        .check_limit(api_key_record.id, api_key_record.rate_limit_per_minute)
+        .is_err()
+    {
+        return Err(AppError::RateLimitExceeded);
+    }
+
     repositories::update_last_used(api_key_record.id, &mut conn).ok();
 
     let auth = ApiKeyAuth {
         account_id: api_key_record.account_id,
-        api_key_id: api_key_record.id,
-        rate_limit: api_key_record.rate_limit_per_minute,
+        // api_key_id: api_key_record.id,
+        // rate_limit: api_key_record.rate_limit_per_minute,
     };
 
     req.extensions_mut().insert(auth);

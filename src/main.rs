@@ -1,23 +1,17 @@
-mod db;
-mod error;
 mod handlers;
 mod middleware;
 mod models;
 mod repositories;
+mod routes;
 mod schema;
 mod services;
 mod utils;
 
-use axum::{
-    Router, middleware as axum_middleware,
-    routing::{get, post},
-};
 use std::sync::Arc;
-use tower_http::cors::CorsLayer;
 use tracing_subscriber;
 
-use db::DbPool;
-use middleware::{api_key_auth::api_key_auth_middleware, rate_limit::RateLimiter};
+use utils::{db,db::DbPool};
+use middleware::rate_limit::RateLimiter;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -39,59 +33,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         rate_limiter: Arc::new(RateLimiter::new()),
     });
 
-    let cors = CorsLayer::permissive();
-
-    let protected_routes = Router::new()
-        // Accounts
-        .route(
-            "/api/accounts",
-            post(handlers::account_handlers::create_account),
-        )
-        .route(
-            "/api/accounts/:id",
-            get(handlers::account_handlers::get_account),
-        )
-        .route(
-            "/api/accounts/:id/balance",
-            get(handlers::account_handlers::get_balance),
-        )
-        // Transactions
-        .route(
-            "/api/transactions",
-            post(handlers::transaction_handlers::create_transaction),
-        )
-        .route(
-            "/api/transactions/:id",
-            get(handlers::transaction_handlers::get_transaction),
-        )
-        // // API Keys
-        // .route("/api/keys", post(handlers::api_key_handlers::generate_key))
-        // Webhooks
-        .route(
-            "/api/webhooks",
-            post(handlers::webhook_handlers::register_webhook),
-        )
-        .route(
-            "/api/webhooks/:id",
-            get(handlers::webhook_handlers::get_webhook),
-        )
-        .route(
-            "/api/webhooks/:id",
-            axum::routing::delete(handlers::webhook_handlers::delete_webhook),
-        )
-        .layer(axum_middleware::from_fn_with_state(
-            state.clone(),
-            api_key_auth_middleware,
-        ));
-
-    let app = Router::new()
-        // Health check - Public
-        .route("/health", get(handlers::health::health))
-        // API Keys
-        .route("/api/keys", post(handlers::api_key_handlers::generate_key))
-        .merge(protected_routes)
-        .layer(cors)
-        .with_state(state);
+    let cors = middleware::cors::create_cors_layer();
+    let app = routes::create_router(state).layer(cors);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
     tracing::info!("Server running on http://0.0.0.0:8080");

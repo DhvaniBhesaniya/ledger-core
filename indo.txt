@@ -97,3 +97,16 @@ diesel print-schema > src/schema.rs
 
 # Reset database (drop and create (this will drop all data))
 # diesel database reset
+
+
+
+
+
+
+
+
+
+
+
+
+testing -1 

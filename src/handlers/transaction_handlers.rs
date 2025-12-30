@@ -3,7 +3,7 @@ use axum::{
     Extension, Json,
 };
 use std::sync::Arc;
-use crate::{AppState, error::AppError, models::*, middleware::ApiKeyAuth, services};
+use crate::{AppState, utils::app_error::AppError, models::*, middleware::ApiKeyAuth, services};
 
 pub async fn create_transaction(
     State(state): State<Arc<AppState>>,
