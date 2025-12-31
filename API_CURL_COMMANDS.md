@@ -112,6 +112,37 @@ curl -X GET http://localhost:8080/api/keys \
   -H "x-api-key: YOUR_API_KEY"
 ```
 
+### Update API Key (Protected)
+```bash
+# Update key name
+curl -X PATCH http://localhost:8080/api/keys/1 \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Production Key"}'
+
+# Update rate limit
+curl -X PATCH http://localhost:8080/api/keys/1 \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"rate_limit_per_minute": 100}'
+
+# Disable a key
+curl -X PATCH http://localhost:8080/api/keys/2 \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"is_active": false}'
+
+# Update multiple fields
+curl -X PATCH http://localhost:8080/api/keys/1 \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Updated Key",
+    "rate_limit_per_minute": 120,
+    "is_active": true
+  }'
+```
+
 ---
 
 ## Webhooks

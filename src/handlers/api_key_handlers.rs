@@ -46,3 +46,17 @@ pub async fn get_all_api_keys(
     let response = services::api_key_service::list_all_api_keys(&mut conn)?;
     Ok(Json(response))
 }
+
+pub async fn update_api_key(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(key_id): axum::extract::Path<i64>,
+    Json(req): Json<UpdateApiKeyRequest>,
+) -> Result<Json<ApiKeyResponse>, AppError> {
+    let mut conn = state
+        .db_pool
+        .get()
+        .map_err(|_| AppError::InternalError("DB connection failed".to_string()))?;
+
+    let response = services::api_key_service::update_api_key(key_id, req, &mut conn)?;
+    Ok(Json(response))
+}

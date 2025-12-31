@@ -2,7 +2,7 @@ use crate::middleware::api_key_auth::api_key_auth_middleware;
 use crate::{AppState, handlers};
 use axum::{
     Router, middleware as axum_middleware,
-    routing::{delete, get, post},
+    routing::{delete, get, patch, post},
 };
 use std::sync::Arc;
 
@@ -49,8 +49,12 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         )
         // Admin
         .route(
-            "/api/keys_list",
+            "/api/keys",
             get(handlers::api_key_handlers::get_all_api_keys),
+        )
+        .route(
+            "/api/keys/:id",
+            patch(handlers::api_key_handlers::update_api_key),
         )
         .layer(axum_middleware::from_fn_with_state(
             state.clone(),
@@ -61,7 +65,10 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         // Health check - Public
         .route("/health", get(handlers::health::health))
         // API Keys
-        .route("/api/key_generate", post(handlers::api_key_handlers::generate_key))
+        .route(
+            "/api/key_generate",
+            post(handlers::api_key_handlers::generate_key),
+        )
         .merge(protected_routes)
         .with_state(state)
 }

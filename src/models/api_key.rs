@@ -46,6 +46,13 @@ pub struct GenerateApiKeyRequest {
     pub name: Option<String>,
     pub rate_limit_per_minute: Option<i32>,
 }
+
+#[derive(Debug, Deserialize)]
+pub struct UpdateApiKeyRequest {
+    pub name: Option<String>,
+    pub rate_limit_per_minute: Option<i32>,
+    pub is_active: Option<bool>,
+}
 #[derive(Debug, Serialize)]
 pub struct ApiKeyResponse {
     pub id: i64,

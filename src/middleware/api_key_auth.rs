@@ -20,7 +20,8 @@ pub async fn api_key_auth_middleware(
     mut req: Request,
     next: Next,
 ) -> Result<Response, AppError> {
-    if (req.uri().path() == "/api/accounts" || req.uri().path() == "/api/keys_list") && req.method() == Method::POST {
+    let path_vec = ["/api/accounts", "/api/keys_list","/api/keys/"];
+    if path_vec.contains(&req.uri().path()) && (req.method() == Method::POST || req.method() == Method::GET) {
         return Ok(next.run(req).await);
     }
 

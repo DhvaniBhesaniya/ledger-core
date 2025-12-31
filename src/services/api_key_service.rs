@@ -17,7 +17,7 @@ pub fn generate_key(
     let new_key = NewApiKey {
         account_id: req.account_id,
         key_hash,
-        key_prefix: key_prefix.clone(),
+        key_prefix: key_prefix.to_owned(),
         name: req.name,
         is_active: true,
         rate_limit_per_minute: req.rate_limit_per_minute.unwrap_or(60),
@@ -43,4 +43,19 @@ pub fn list_api_keys(
 pub fn list_all_api_keys(conn: &mut PgConnection) -> Result<Vec<ApiKeyResponse>, AppError> {
     let keys = repositories::list_all_api_keys(conn)?;
     Ok(keys.into_iter().map(Into::into).collect())
+}
+
+pub fn update_api_key(
+    key_id: i64,
+    req: UpdateApiKeyRequest,
+    conn: &mut PgConnection,
+) -> Result<ApiKeyResponse, AppError> {
+    let updated_key = repositories::update_api_key(
+        key_id,
+        req.name,
+        req.rate_limit_per_minute,
+        req.is_active,
+        conn,
+    )?;
+    Ok(updated_key.into())
 }
