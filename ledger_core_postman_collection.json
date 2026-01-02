@@ -430,6 +430,30 @@
                             ]
                         }
                     }
+                },
+                {
+                    "name": "Get Acc All Transaction",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/transactions/account/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "transactions",
+                                "account",
+                                "1"
+                            ]
+                        }
+                    }
                 }
             ]
         },

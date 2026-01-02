@@ -127,6 +127,58 @@ INSERT INTO api_keys (
 
 
 
+
+
+# 1. Start services
+docker-compose up -d
+
+# 2. Verify PostgreSQL is running
+docker-compose ps
+# Should show: postgres - Up (healthy)
+#              adminer - Up
+#              app - Up
+
+# 3. Check database is accessible
+docker-compose exec postgres psql -U postgres -d transaction_service -c "\dt"
+# Should list: accounts, api_keys, transactions, webhook_endpoints, webhook_events
+
+# 4. Check app is running
+curl http://localhost:8080/health
+# Should respond: OK
+
+
+
+
+
+Access Adminer web UI
+# Open: http://localhost:8081
+# Server: postgres
+# Username: postgres
+# Password: password
+# Database: transaction_service
+
+# Or use psql command line
+docker-compose exec postgres psql -U postgres -d transaction_service
+
+# Inside psql:
+SELECT * FROM accounts;
+SELECT * FROM api_keys;
+SELECT version();
+Phase 3: Create Test Account
+# First, we need an API key
+# For testing, let's create one manually in database
+
+docker-compose exec postgres psql -U postgres -d transaction_service
+
+
+
+
+
+
+
+
+
+
 {
     "account": {
         "id": 1,
@@ -135,16 +187,16 @@ INSERT INTO api_keys (
         "currency": "USD",
         "is_active": true
     },
-    "secret_api_key": "sk_prod_680a4e0e-a0c7-4ced-b3d4-75de4d832d8b"
+    "secret_api_key": "sk_prod_69ff2af3-9c94-4a55-ac87-a568f3146a9c"
 }
 
 {
     "account": {
         "id": 2,
-        "business_name": "My Business",
+        "business_name": "My Business 2",
         "balance": 0,
         "currency": "USD",
         "is_active": true
     },
-    "secret_api_key": "sk_prod_0919114a-faf1-487f-958b-01a67ba91137"
+    "secret_api_key": "sk_prod_dc06bdeb-b1a0-4f33-906e-b164b08b9219"
 }

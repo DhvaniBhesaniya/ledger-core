@@ -33,6 +33,22 @@ pub fn get_transaction_by_id(id: i64, conn: &mut PgConnection) -> Result<Transac
         .map_err(|_| AppError::TransactionNotFound)
 }
 
+// Get all transactions for an account (both sent and received)
+pub fn get_account_transactions(
+    account_id: i64,
+    conn: &mut PgConnection,
+) -> Result<Vec<Transaction>, AppError> {
+    transactions::table
+        .filter(
+            transactions::from_account_id
+                .eq(account_id)
+                .or(transactions::to_account_id.eq(account_id)),
+        )
+        .order(transactions::created_at.desc())
+        .load(conn)
+        .map_err(|e| AppError::DatabaseError(e.to_string()))
+}
+
 pub fn get_pending_transactions(conn: &mut PgConnection) -> Result<Vec<Transaction>, AppError> {
     transactions::table
         .filter(transactions::status.eq(TransactionStatus::Pending))

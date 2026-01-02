@@ -63,3 +63,12 @@ pub fn get_transaction(id: i64, conn: &mut PgConnection) -> Result<TransactionRe
     let tx = repositories::get_transaction_by_id(id, conn)?;
     Ok(tx.into())
 }
+
+// List all transactions for an account (both sent and received)
+pub fn list_account_transactions(
+    account_id: i64,
+    conn: &mut PgConnection,
+) -> Result<Vec<TransactionResponse>, AppError> {
+    let transactions = repositories::get_account_transactions(account_id, conn)?;
+    Ok(transactions.into_iter().map(Into::into).collect())
+}
