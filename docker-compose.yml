@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: transaction_service_db
+    restart: unless-stopped
+    
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_DB: ${DB_NAME:-transaction_service}
+    
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    
+    networks:
+      - transaction_network
+
+  adminer:
+    image: adminer:latest
+    container_name: transaction_service_adminer
+    restart: unless-stopped
+    
+    ports:
+      - "8081:8080"
+    
+    depends_on:
+      postgres:
+        condition: service_healthy
+    
+    networks:
+      - transaction_network
+
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+    
+  #   container_name: transaction_service_app
+  #   restart: unless-stopped
+    
+  #   ports:
+  #     - "${APP_PORT:-8080}:8080"
+    
+  #   environment:
+  #     DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-password}@postgres:5432/${DB_NAME:-transaction_service}
+  #     RUST_LOG: debug
+  #     RUST_BACKTRACE: 1
+    
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+    
+  #   networks:
+  #     - transaction_network
+
+volumes:
+  postgres_data:
+
+networks:
+  transaction_network:
+    driver: bridge

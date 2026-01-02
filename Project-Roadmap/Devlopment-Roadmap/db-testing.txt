@@ -1,0 +1,61 @@
+Phase 1: Setup Verification
+
+# 1. Start services
+docker-compose up -d
+
+# 2. Verify PostgreSQL is running
+docker-compose ps
+# Should show: postgres - Up (healthy)
+#              adminer - Up
+#              app - Up
+
+# 3. Check database is accessible
+docker-compose exec postgres psql -U postgres -d transaction_service -c "\dt"
+# Should list: accounts, api_keys, transactions, webhook_endpoints, webhook_events
+
+# 4. Check app is running
+curl http://localhost:8080/health
+# Should respond: OK
+
+
+
+
+
+
+Phase 2: Database Testing
+# Access Adminer web UI
+# Open: http://localhost:8081
+# Server: postgres
+# Username: postgres
+# Password: password
+# Database: transaction_service
+
+# Or use psql command line
+docker-compose exec postgres psql -U postgres -d transaction_service
+
+# Inside psql:
+SELECT * FROM accounts;
+SELECT * FROM api_keys;
+SELECT version();
+
+
+
+Phase 3: Create Test Account
+
+# First, we need an API key
+# For testing, let's create one manually in database
+
+docker-compose exec postgres psql -U postgres -d transaction_service
+
+-- In psql, run:
+INSERT INTO accounts (business_name, balance, currency, is_active) 
+VALUES ('Test Business', 100000, 'USD', true);
+
+-- Get the account ID (should be 1)
+SELECT * FROM accounts;
+
+-- Create API key
+-- First hash: "sk_prod_test_key_123"
+INSERT INTO api_keys (account_id, key_hash, key_prefix, is_active, rate_limit_per_minute)
+VALUES (1, 'a1b2c3d4e5f6...', 'sk_prod_test_', true, 100);
+-- Note: Use actual SHA256 hash of your API key

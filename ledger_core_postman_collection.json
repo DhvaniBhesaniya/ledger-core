@@ -1,0 +1,649 @@
+{
+    "info": {
+        "_postman_id": "ledger-core-api2",
+        "name": "Ledger Core API - RBAC Edition",
+        "description": "Complete API collection for Ledger Core with Role-Based Access Control (Admin & Customer keys)",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+        {
+            "key": "base_url",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "admin_api_key",
+            "value": "sk_prod_ed6477c2-d79f-44f6-986b-42377d6c0be3",
+            "type": "string"
+        },
+        {
+            "key": "customer_api_key",
+            "value": "sk_prod_680a4e0e-a0c7-4ced-b3d4-75de4d832d8b",
+            "type": "string"
+        },
+        {
+            "key": "account_id",
+            "value": "1",
+            "type": "string"
+        }
+    ],
+    "item": [
+        {
+            "name": "Health Check",
+            "item": [
+                {
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/health",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Public endpoint - no authentication required"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Accounts",
+            "item": [
+                {
+                    "name": "Create Account (Public)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "if (pm.response.code === 201) {",
+                                    "    var jsonData = pm.response.json();",
+                                    "    pm.collectionVariables.set('account_id', jsonData.account.id);",
+                                    "    pm.collectionVariables.set('customer_api_key', jsonData.secret_api_key);",
+                                    "    console.log('Account ID:', jsonData.account.id);",
+                                    "    console.log('Customer API Key:', jsonData.secret_api_key);",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"business_name\": \"My Business\",\n  \"currency\": \"USD\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts"
+                            ]
+                        },
+                        "description": "Public endpoint - Creates account and auto-generates customer API key"
+                    }
+                },
+                {
+                    "name": "Get Account (Customer - Own)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/{{account_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "{{account_id}}"
+                            ]
+                        },
+                        "description": "Customer can only access their own account"
+                    }
+                },
+                {
+                    "name": "Get Account (Admin - Any)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/{{account_id}}",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "{{account_id}}"
+                            ]
+                        },
+                        "description": "Admin can access any account"
+                    }
+                },
+                {
+                    "name": "Get Balance (Customer)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/{{account_id}}/balance",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "{{account_id}}",
+                                "balance"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "API Keys",
+            "item": [
+                {
+                    "name": "Generate API Key (Admin Only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"account_id\": 1,\n  \"name\": \"Additional Customer Key\",\n  \"rate_limit_per_minute\": 100,\n  \"role\": \"customer\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/key_generate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "key_generate"
+                            ]
+                        },
+                        "description": "Admin only - Generate new API key for any account"
+                    }
+                },
+                {
+                    "name": "Generate Admin Key (Admin Only)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"account_id\": 1,\n  \"name\": \"Additional Admin Key\",\n  \"rate_limit_per_minute\": 1000,\n  \"role\": \"admin\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/key_generate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "key_generate"
+                            ]
+                        },
+                        "description": "Admin only - Generate new admin API key (account_id will be ignored for admin keys)"
+                    }
+                },
+                {
+                    "name": "List Account Keys (Customer - Own)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/{{account_id}}/keys",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "{{account_id}}",
+                                "keys"
+                            ]
+                        },
+                        "description": "Customer can only list their own account's keys"
+                    }
+                },
+                {
+                    "name": "List Account Keys (Admin - Any)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/{{account_id}}/keys",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "{{account_id}}",
+                                "keys"
+                            ]
+                        },
+                        "description": "Admin can list any account's keys"
+                    }
+                },
+                {
+                    "name": "List All API Keys (Admin Only)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/keys_list",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "keys_list"
+                            ]
+                        },
+                        "description": "Admin only - List all API keys in the system"
+                    }
+                },
+                {
+                    "name": "Update API Key (Admin Only)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"name\": \"Updated Key Name\",\n  \"rate_limit_per_minute\": 150,\n  \"is_active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/keys/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "keys",
+                                "1"
+                            ]
+                        },
+                        "description": "Admin only - Update API key properties"
+                    }
+                },
+                {
+                    "name": "Disable API Key (Admin Only)",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{admin_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"is_active\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/keys/2",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "keys",
+                                "2"
+                            ]
+                        },
+                        "description": "Admin only - Disable an API key"
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Transactions",
+            "item": [
+                {
+                    "name": "Create Transaction (Customer)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"transaction_type\": \"credit\",\n  \"amount\": 10000,\n  \"currency\": \"USD\",\n  \"description\": \"Initial deposit\",\n  \"idempotency_key\": \"txn_{{$randomUUID}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/transactions",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "transactions"
+                            ]
+                        },
+                        "description": "Customer creates transaction for their account"
+                    }
+                },
+                {
+                    "name": "Get Transaction",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/transactions/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "transactions",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Acc All Transaction",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/transactions/account/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "transactions",
+                                "account",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Webhooks",
+            "item": [
+                {
+                    "name": "Register Webhook (Customer)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"url\": \"https://example.com/webhook\",\n  \"events\": [\"transaction.created\", \"transaction.completed\"],\n  \"secret\": \"webhook_secret_123\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/webhooks",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "webhooks"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Webhook",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/webhooks/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "webhooks",
+                                "1"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Webhook",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/webhooks/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "webhooks",
+                                "1"
+                            ]
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "name": "Testing - Authorization",
+            "item": [
+                {
+                    "name": "Customer Access Other Account (Should Fail)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/999",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "999"
+                            ]
+                        },
+                        "description": "Should return 403 Forbidden"
+                    }
+                },
+                {
+                    "name": "Customer List All Keys (Should Fail)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/keys_list",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "keys_list"
+                            ]
+                        },
+                        "description": "Should return 403 Forbidden"
+                    }
+                },
+                {
+                    "name": "Customer Generate Key (Should Fail)",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "{{customer_api_key}}"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"account_id\": 1,\n  \"name\": \"Test Key\",\n  \"role\": \"customer\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/key_generate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "key_generate"
+                            ]
+                        },
+                        "description": "Should return 403 Forbidden"
+                    }
+                },
+                {
+                    "name": "Invalid API Key (Should Fail)",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "x-api-key",
+                                "value": "invalid_key_12345"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/api/accounts/1",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "accounts",
+                                "1"
+                            ]
+                        },
+                        "description": "Should return 401 Unauthorized"
+                    }
+                }
+            ]
+        }
+    ]
+}

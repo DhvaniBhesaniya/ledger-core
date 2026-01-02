@@ -1,0 +1,40 @@
+┌─────────────────────────────────────────┐
+│   Transaction Service Requirements      │
+├─────────────────────────────────────────┤
+│                                         │
+│ 1. API Authentication                   │
+│    └─ Secure access via API keys        │
+│                                         │
+│ 2. Account Management                   │
+│    ├─ Create business accounts          │
+│    └─ Query account balances            │
+│                                         │
+│ 3. Transaction Processing               │
+│    ├─ Credit transactions               │
+│    ├─ Debit transactions                │
+│    ├─ Transfer between accounts         │
+│    └─ ATOMIC balance updates            │
+│                                         │
+│ 4. Webhook System                       │
+│    ├─ Reliable delivery                 │
+│    ├─ Security (HMAC signatures)        │
+│    ├─ Idempotent retries                │
+│    └─ Exponential backoff               │
+│                                         │
+│ 5. Data Persistence                     │
+│    ├─ Accounts table                    │
+│    ├─ Transactions table                │
+│    ├─ API Keys table                    │
+│    ├─ Webhook Endpoints table           │
+│    └─ Webhook Events table              │
+│                                         │
+│ 6. API Documentation                    │
+│    └─ Request/Response formats + Errors │
+│                                         │
+│ 7. Local Development Setup              │
+│    └─ docker-compose.yml                │
+│                                         │
+│ BONUS: Idempotency & Rate Limiting      │
+│    ├─ Idempotency keys                  │
+│    └─ Per-API-Key rate limits           │
+└─────────────────────────────────────────┘

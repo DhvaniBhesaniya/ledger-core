@@ -1,0 +1,44 @@
+1. CLIENT REQUEST
+   ├─ POST /api/transactions
+   ├─ Headers: X-API-Key, Idempotency-Key
+   └─ Body: {from_account_id, to_account_id, amount, type}
+        ↓
+2. MIDDLEWARE PROCESSING
+   ├─ CORS check ✓
+   ├─ Rate limit check ✓
+   ├─ API key validation → extract account_id ✓
+   ├─ Idempotency check ✓
+   └─ Request body validation ✓
+        ↓
+3. HANDLER EXECUTION
+   ├─ TransactionService::process_transaction()
+   └─ Calls database with transaction
+        ↓
+4. DATABASE OPERATION (ATOMIC)
+   ├─ BEGIN TRANSACTION
+   ├─ Lock source account (SELECT FOR UPDATE)
+   ├─ Verify balance >= amount
+   ├─ Debit source account
+   ├─ Credit destination account
+   ├─ Insert transaction record
+   ├─ COMMIT
+   └─ Returns transaction details
+        ↓
+5. RESPONSE GENERATION
+   ├─ Build response JSON
+   ├─ Cache response (idempotency)
+   └─ Return 200 OK
+        ↓
+6. WEBHOOK TRIGGERING
+   ├─ Create webhook_event record
+   ├─ Queue event to background worker
+   └─ Return to client immediately
+        ↓
+7. BACKGROUND PROCESSING
+   ├─ Worker polls webhook_events
+   ├─ For each registered webhook endpoint:
+   │  ├─ Generate HMAC signature
+   │  ├─ POST to webhook URL
+   │  ├─ Record delivery attempt
+   │  └─ Schedule retry if needed
+   └─ Continue until delivery success or max retries

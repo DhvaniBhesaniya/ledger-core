@@ -1,0 +1,16 @@
+# Create new Rust project
+cargo new transaction-service --name transaction_service
+cd transaction-service
+
+# Add dependencies to Cargo.toml
+# (See Cargo.toml section below)
+
+# Create project structure
+mkdir -p src/{models,repositories,services,handlers,middleware,db,error}
+mkdir -p migrations
+
+# Initialize Git
+git init
+echo "target/" > .gitignore
+echo ".env" >> .gitignore
+echo "diesel.toml" >> .gitignore
