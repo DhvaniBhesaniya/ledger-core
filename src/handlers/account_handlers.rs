@@ -1,4 +1,10 @@
-use crate::{AppState, middleware::ApiKeyAuth, models::*, services, utils::app_error::AppError};
+use crate::{
+    AppState,
+    middleware::{ApiKeyAuth, authorization},
+    models::*,
+    services,
+    utils::app_error::AppError,
+};
 use axum::{
     Extension, Json,
     extract::{Path, State},
@@ -21,9 +27,12 @@ pub async fn create_account(
 
 pub async fn get_account(
     State(state): State<Arc<AppState>>,
-    Extension(_auth): Extension<ApiKeyAuth>,
+    Extension(auth): Extension<ApiKeyAuth>,
     Path(id): Path<i64>,
 ) -> Result<Json<AccountResponse>, AppError> {
+    // Require account access (admin or own account)
+    authorization::require_account_access(&auth, id)?;
+
     let mut conn = state
         .db_pool
         .get()
@@ -35,9 +44,12 @@ pub async fn get_account(
 
 pub async fn get_balance(
     State(state): State<Arc<AppState>>,
-    Extension(_auth): Extension<ApiKeyAuth>,
+    Extension(auth): Extension<ApiKeyAuth>,
     Path(id): Path<i64>,
 ) -> Result<Json<serde_json::Value>, AppError> {
+    // Require account access (admin or own account)
+    authorization::require_account_access(&auth, id)?;
+
     let mut conn = state
         .db_pool
         .get()

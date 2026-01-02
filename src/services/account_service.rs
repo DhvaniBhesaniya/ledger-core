@@ -19,8 +19,9 @@ pub fn create_account(
     // Auto-generate Root API Key
     let key_req = GenerateApiKeyRequest {
         account_id: account.id,
-        name: Some(format!("Api_Key_{}_{}", account.id,account.business_name)),
+        name: Some(format!("Api_Key_{}_{}", account.id, account.business_name)),
         rate_limit_per_minute: Some(60),
+        role: Some("customer".to_string()),
     };
 
     let key_res = api_key_service::generate_key(key_req, conn)?;

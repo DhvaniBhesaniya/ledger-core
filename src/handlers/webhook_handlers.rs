@@ -1,24 +1,27 @@
+use crate::{AppState, middleware::ApiKeyAuth, models::*, services, utils::app_error::AppError};
 use axum::{
-    extract::{Path, State},
     Extension, Json,
+    extract::{Path, State},
 };
 use std::sync::Arc;
-use crate::{AppState, utils::app_error::AppError, models::*, middleware::ApiKeyAuth, services};
 
 pub async fn register_webhook(
     State(state): State<Arc<AppState>>,
     Extension(auth): Extension<ApiKeyAuth>,
     Json(req): Json<RegisterWebhookRequest>,
 ) -> Result<Json<WebhookEndpointResponse>, AppError> {
-    let mut conn = state.db_pool.get()
+    // Customer keys must have an account_id
+    let account_id = auth
+        .account_id
+        .ok_or_else(|| AppError::BadRequest("Admin keys cannot register webhooks".to_string()))?;
+
+    let mut conn = state
+        .db_pool
+        .get()
         .map_err(|_| AppError::InternalError("DB connection failed".to_string()))?;
 
-    let response = services::webhook_service::register_webhook(
-        auth.account_id,
-        req,
-        &mut conn,
-    )?;
-    
+    let response = services::webhook_service::register_webhook(account_id, req, &mut conn)?;
+
     Ok(Json(response))
 }
 
@@ -27,7 +30,9 @@ pub async fn get_webhook(
     Extension(_auth): Extension<ApiKeyAuth>,
     Path(id): Path<i64>,
 ) -> Result<Json<WebhookEndpointResponse>, AppError> {
-    let mut conn = state.db_pool.get()
+    let mut conn = state
+        .db_pool
+        .get()
         .map_err(|_| AppError::InternalError("DB connection failed".to_string()))?;
 
     let response = services::webhook_service::get_webhook(id, &mut conn)?;
@@ -39,7 +44,9 @@ pub async fn delete_webhook(
     Extension(_auth): Extension<ApiKeyAuth>,
     Path(id): Path<i64>,
 ) -> Result<(), AppError> {
-    let mut conn = state.db_pool.get()
+    let mut conn = state
+        .db_pool
+        .get()
         .map_err(|_| AppError::InternalError("DB connection failed".to_string()))?;
 
     services::webhook_service::delete_webhook(id, &mut conn)?;

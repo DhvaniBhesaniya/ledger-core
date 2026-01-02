@@ -1,0 +1,142 @@
+# Role-Based Access Control (RBAC) Implementation Walkthrough
+
+## Summary
+Successfully implemented a two-tier role-based access control system for API keys, distinguishing between **admin** and **customer** roles with different permission levels.
+
+## Changes Made
+
+### 1. Database Migration
+**File**: `migrations/2026-01-01-055030-0000_add_role_to_api_keys/`
+- Added `role VARCHAR(20) NOT NULL DEFAULT 'customer'` column to `api_keys` table
+- Created index on `role` column for efficient role-based queries
+- Migration applied successfully, schema regenerated automatically
+
+### 2. Models & Enums
+**File**: `src/models/enums.rs`
+- Added `ApiKeyRole` enum with `Admin` and `Customer` variants
+- Included helper methods `as_str()` and `from_str()` for string conversion
+
+**File**: `src/models/api_key.rs`
+- Updated `ApiKey` struct with `role: String` field
+- Updated `NewApiKey` struct with `role: String` field
+- Updated `ApiKeyResponse` struct with `role: String` field
+- Updated `GenerateApiKeyRequest` with `role: Option<String>` (defaults to "customer")
+
+### 3. Error Handling
+**File**: `src/utils/app_error.rs`
+- Added `Forbidden` error variant (HTTP 403)
+- Returns appropriate error message: "You do not have permission to access this resource"
+
+### 4. Middleware & Authorization
+**File**: `src/middleware/api_key_auth.rs`
+- Updated `ApiKeyAuth` struct to include `role: String`
+- Middleware now extracts role from database and passes it to handlers
+- Removed public access to `/api/keys_list` - now properly protected
+
+**File**: `src/middleware/authorization.rs` (NEW)
+- Created `require_admin()` - Ensures only admin keys can access admin-only routes
+- Created `require_account_access()` - Allows admin to access any account, customers only their own
+
+### 5. Service Layer
+**File**: `src/services/api_key_service.rs`
+- Updated `generate_key()` to accept role from request, defaults to "customer"
+- Role is now properly stored in database when creating keys
+
+**File**: `src/services/account_service.rs`
+- Auto-generated keys on account creation now explicitly set to "customer" role
+
+### 6. Handler Authorization
+
+#### Admin-Only Routes
+**File**: `src/handlers/api_key_handlers.rs`
+- `generate_key()` - Requires admin role
+- `get_all_api_keys()` - Requires admin role
+- `update_api_key()` - Requires admin role
+
+#### Account-Scoped Routes
+**File**: `src/handlers/account_handlers.rs`
+- `get_account()` - Requires account ownership (admin can access any, customer only their own)
+- `get_balance()` - Requires account ownership
+
+**File**: `src/handlers/api_key_handlers.rs`
+- `get_api_keys()` - Requires account ownership
+
+### 7. Documentation
+**File**: `ADMIN_BOOTSTRAP.md` (NEW)
+- Comprehensive guide for creating the first admin key
+- Step-by-step instructions with SQL examples
+- Security recommendations and key rotation guidance
+
+## Access Control Matrix
+
+| Route | Method | Admin | Customer |
+|-------|--------|-------|----------|
+| `/health` | GET | ✅ Public | ✅ Public |
+| `/api/accounts` | POST | ✅ Public | ✅ Public |
+| `/api/accounts/:id` | GET | ✅ Any account | ✅ Own account only |
+| `/api/accounts/:id/balance` | GET | ✅ Any account | ✅ Own account only |
+| `/api/accounts/:id/keys` | GET | ✅ Any account | ✅ Own account only |
+| `/api/keys` | POST | ✅ Yes | ❌ No |
+| `/api/keys_list` | GET | ✅ Yes | ❌ No |
+| `/api/keys/:id` | PATCH | ✅ Yes | ❌ No |
+| `/api/transactions` | POST | ✅ Yes | ✅ Yes |
+| `/api/transactions/:id` | GET | ✅ Yes | ✅ Yes |
+| `/api/webhooks` | POST | ✅ Yes | ✅ Yes |
+| `/api/webhooks/:id` | GET | ✅ Yes | ✅ Yes |
+| `/api/webhooks/:id` | DELETE | ✅ Yes | ✅ Yes |
+
+## Verification
+
+### Code Compilation
+```bash
+cargo check
+```
+✅ **Result**: Compiles successfully with only minor unused function warnings
+
+### Database Schema
+```sql
+\d api_keys
+```
+✅ **Result**: `role` column present with default value 'customer'
+
+## Next Steps
+
+### 1. Create First Admin Key
+Follow instructions in `ADMIN_BOOTSTRAP.md` to manually create your first admin key in the database.
+
+### 2. Test Authorization
+```bash
+# Test admin access (should work)
+curl -X GET http://localhost:8080/api/keys_list \
+  -H "x-api-key: YOUR_ADMIN_KEY"
+
+# Test customer access to admin route (should fail with 403)
+curl -X GET http://localhost:8080/api/keys_list \
+  -H "x-api-key: YOUR_CUSTOMER_KEY"
+
+# Test customer accessing their own account (should work)
+curl -X GET http://localhost:8080/api/accounts/1 \
+  -H "x-api-key: CUSTOMER_KEY_FOR_ACCOUNT_1"
+
+# Test customer accessing another account (should fail with 403)
+curl -X GET http://localhost:8080/api/accounts/2 \
+  -H "x-api-key: CUSTOMER_KEY_FOR_ACCOUNT_1"
+```
+
+### 3. Update API Documentation
+- Update `API_CURL_COMMANDS.md` with role-specific examples
+- Update Postman collection with admin vs customer scenarios
+
+## Security Considerations
+
+✅ **Implemented**:
+- Role-based access control at handler level
+- Account ownership validation
+- Admin-only routes properly protected
+- Customer keys auto-generated with limited permissions
+
+⚠️ **Recommendations**:
+- Rotate admin keys regularly
+- Monitor admin key usage via `last_used_at`
+- Consider adding audit logging for admin actions
+- Implement key expiration for enhanced security

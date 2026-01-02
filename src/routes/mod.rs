@@ -49,7 +49,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         )
         // Admin
         .route(
-            "/api/keys",
+            "/api/keys_list",
             get(handlers::api_key_handlers::get_all_api_keys),
         )
         .route(
@@ -70,5 +70,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             post(handlers::api_key_handlers::generate_key),
         )
         .merge(protected_routes)
+        .layer(axum_middleware::from_fn(
+            crate::middleware::logging::logging_middleware,
+        ))
         .with_state(state)
 }

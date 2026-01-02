@@ -15,12 +15,17 @@ pub fn generate_key(
     let key_prefix = raw_key[..20].to_string();
 
     let new_key = NewApiKey {
-        account_id: req.account_id,
+        account_id: if req.role.as_deref() == Some("admin") {
+            None // Admin keys don't need an account
+        } else {
+            Some(req.account_id) // Customer keys must have an account
+        },
         key_hash,
-        key_prefix: key_prefix.to_owned(),
+        key_prefix: key_prefix.clone(),
         name: req.name,
         is_active: true,
         rate_limit_per_minute: req.rate_limit_per_minute.unwrap_or(60),
+        role: req.role.unwrap_or_else(|| "customer".to_string()),
     };
 
     let api_key = repositories::create_api_key(&new_key, conn)?;

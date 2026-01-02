@@ -10,9 +10,8 @@ use std::sync::Arc;
 
 #[derive(Clone, Debug)]
 pub struct ApiKeyAuth {
-    pub account_id: i64,
-    // pub api_key_id: i64,
-    // pub rate_limit: i32,
+    pub account_id: Option<i64>, // None for admin keys
+    pub role: String,
 }
 
 pub async fn api_key_auth_middleware(
@@ -20,8 +19,8 @@ pub async fn api_key_auth_middleware(
     mut req: Request,
     next: Next,
 ) -> Result<Response, AppError> {
-    let path_vec = ["/api/accounts", "/api/keys_list","/api/keys/"];
-    if path_vec.contains(&req.uri().path()) && (req.method() == Method::POST || req.method() == Method::GET) {
+    // Public routes: POST /api/accounts (account creation)
+    if req.uri().path() == "/api/accounts" && req.method() == Method::POST {
         return Ok(next.run(req).await);
     }
 
@@ -53,8 +52,7 @@ pub async fn api_key_auth_middleware(
 
     let auth = ApiKeyAuth {
         account_id: api_key_record.account_id,
-        // api_key_id: api_key_record.id,
-        // rate_limit: api_key_record.rate_limit_per_minute,
+        role: api_key_record.role.clone(),
     };
 
     req.extensions_mut().insert(auth);

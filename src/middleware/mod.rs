@@ -1,4 +1,5 @@
 pub mod api_key_auth;
+pub mod authorization;
 pub mod cors;
 pub mod idempotency;
 pub mod logging;

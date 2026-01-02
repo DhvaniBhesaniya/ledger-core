@@ -10,8 +10,8 @@ mod utils;
 use std::sync::Arc;
 use tracing_subscriber;
 
-use utils::{db,db::DbPool};
 use middleware::rate_limit::RateLimiter;
+use utils::{db, db::DbPool};
 
 #[derive(Clone)]
 pub struct AppState {
@@ -22,7 +22,17 @@ pub struct AppState {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenvy::dotenv().ok();
-    tracing_subscriber::fmt::init();
+
+    // Enhanced logging configuration
+    tracing_subscriber::fmt()
+        .with_target(false) // Don't show module paths
+        .with_thread_ids(false)
+        .with_level(true)
+        .with_ansi(true) // Enable colors
+        .with_file(false)
+        .with_line_number(false)
+        .compact()
+        .init();
 
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
@@ -37,7 +47,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = routes::create_router(state).layer(cors);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await?;
-    tracing::info!("Server running on http://0.0.0.0:8080");
+
+    tracing::info!("╔════════════════════════════════════════╗");
+    tracing::info!("║   Ledger Core API Server Started       ║");
+    tracing::info!("╠════════════════════════════════════════╣");
+    tracing::info!("║  Address: http://0.0.0.0:8080          ║");
+    tracing::info!(
+        "║  Environment: {}              ║",
+        std::env::var("RUST_ENV").unwrap_or_else(|_| "development".to_string())
+    );
+    tracing::info!("╚════════════════════════════════════════╝");
 
     axum::serve(listener, app).await?;
 

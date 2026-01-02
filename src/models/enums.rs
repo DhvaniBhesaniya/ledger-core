@@ -28,3 +28,28 @@ pub enum WebhookStatus {
     Delivered,
     Failed,
 }
+
+// Simple enum for API key roles (stored as VARCHAR in DB)
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ApiKeyRole {
+    Admin,
+    Customer,
+}
+
+impl ApiKeyRole {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            ApiKeyRole::Admin => "admin",
+            ApiKeyRole::Customer => "customer",
+        }
+    }
+
+    pub fn from_str(s: &str) -> Option<Self> {
+        match s {
+            "admin" => Some(ApiKeyRole::Admin),
+            "customer" => Some(ApiKeyRole::Customer),
+            _ => None,
+        }
+    }
+}

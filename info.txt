@@ -103,10 +103,48 @@ diesel print-schema > src/schema.rs
 
 
 
+dhvani@inventyv:~/personal_work/ledger-core$ uuidgen
+ed6477c2-d79f-44f6-986b-42377d6c0be3
+
+admin_uuid = ed6477c2-d79f-44f6-986b-42377d6c0be3
+sk_prod_ed6477c2-d79f-44f6-986b-42377d6c0be3
+dhvani@inventyv:~/personal_work/ledger-core$ echo -n "sk_prod_ed6477c2-d79f-44f6-986b-42377d6c0be3" | sha256sum
+4d9c8a9fb98de379a361ddd5e9765266b4d88ed8e5d76c40887b6b6fd71fa5df  -
+
+
+INSERT INTO api_keys (
+    account_id, key_hash, key_prefix, name,
+    is_active, rate_limit_per_minute, role,
+    created_at, updated_at
+) VALUES (
+    NULL,  -- Admin keys don't need an account!
+    '4d9c8a9fb98de379a361ddd5e9765266b4d88ed8e5d76c40887b6b6fd71fa5df',
+    'sk_prod_4d9c8a9fb98d',
+    'Bootstrap Admin Key',
+    true, 1000, 'admin',
+    NOW(), NOW()
+);
 
 
 
+{
+    "account": {
+        "id": 1,
+        "business_name": "My Business",
+        "balance": 0,
+        "currency": "USD",
+        "is_active": true
+    },
+    "secret_api_key": "sk_prod_680a4e0e-a0c7-4ced-b3d4-75de4d832d8b"
+}
 
-
-
-testing -1 
+{
+    "account": {
+        "id": 2,
+        "business_name": "My Business",
+        "balance": 0,
+        "currency": "USD",
+        "is_active": true
+    },
+    "secret_api_key": "sk_prod_0919114a-faf1-487f-958b-01a67ba91137"
+}

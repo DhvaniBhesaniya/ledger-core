@@ -21,6 +21,9 @@ pub enum AppError {
     Unauthorized,
     InvalidApiKey,
 
+    // 403
+    Forbidden,
+
     // 404
     NotFound,
     AccountNotFound,
@@ -53,6 +56,11 @@ impl IntoResponse for AppError {
                 StatusCode::UNAUTHORIZED,
                 "INVALID_API_KEY",
                 "Invalid API key".to_string(),
+            ),
+            AppError::Forbidden => (
+                StatusCode::FORBIDDEN,
+                "FORBIDDEN",
+                "You do not have permission to access this resource".to_string(),
             ),
             AppError::NotFound => (
                 StatusCode::NOT_FOUND,
@@ -90,13 +98,30 @@ impl IntoResponse for AppError {
                 "Too many requests".to_string(),
             ),
             AppError::Conflict(msg) => (StatusCode::CONFLICT, "CONFLICT", msg),
-            AppError::DatabaseError(msg) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "DATABASE_ERROR", msg)
+            AppError::DatabaseError(ref msg) => {
+                tracing::error!(error = %msg, "Database error occurred");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "DATABASE_ERROR",
+                    msg.clone(),
+                )
             }
-            AppError::InternalError(msg) => {
-                (StatusCode::INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", msg)
+            AppError::InternalError(ref msg) => {
+                tracing::error!(error = %msg, "Internal server error occurred");
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "INTERNAL_ERROR",
+                    msg.clone(),
+                )
             }
         };
+
+        // Log client and server errors
+        if status.is_client_error() {
+            tracing::warn!(code = code, message = %message, "Client error");
+        } else if status.is_server_error() {
+            tracing::error!(code = code, message = %message, "Server error");
+        }
 
         let error_response = ErrorResponse {
             error: message,

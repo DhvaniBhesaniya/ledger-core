@@ -31,7 +31,7 @@ diesel::table! {
 diesel::table! {
     api_keys (id) {
         id -> Int8,
-        account_id -> Int8,
+        account_id -> Nullable<Int8>,
         #[max_length = 255]
         key_hash -> Varchar,
         #[max_length = 20]
@@ -43,6 +43,8 @@ diesel::table! {
         last_used_at -> Nullable<Timestamp>,
         created_at -> Timestamp,
         updated_at -> Timestamp,
+        #[max_length = 20]
+        role -> Varchar,
     }
 }
 
