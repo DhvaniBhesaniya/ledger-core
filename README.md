@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="./project-banner.png" alt="Ledger Core - Tech Stack" width="600"/>
+</div>
+
 # Ledger Core
 
 A high-performance, production-ready ledger system built with Rust, featuring role-based access control (RBAC), comprehensive API key management, and real-time transaction processing.
