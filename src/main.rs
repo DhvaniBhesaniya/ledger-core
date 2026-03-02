@@ -13,10 +13,13 @@ use tracing_subscriber;
 use middleware::rate_limit::RateLimiter;
 use utils::{db, db::DbPool};
 
+use crate::middleware::idempotency::IdempotencyCache;
+
 #[derive(Clone)]
 pub struct AppState {
     pub db_pool: Arc<DbPool>,
     pub rate_limiter: Arc<RateLimiter>,
+    pub idempotency_cache: Arc<IdempotencyCache>
 }
 
 #[tokio::main]
@@ -41,6 +44,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let state = Arc::new(AppState {
         db_pool: Arc::new(db_pool),
         rate_limiter: Arc::new(RateLimiter::new()),
+        idempotency_cache: Arc::new(IdempotencyCache::new()),
     });
 
     let cors = middleware::cors::create_cors_layer();

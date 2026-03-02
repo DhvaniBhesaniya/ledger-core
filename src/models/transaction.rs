@@ -34,7 +34,7 @@ pub struct NewTransaction {
     pub idempotency_key: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize,Clone)]
 pub struct CreateTransactionRequest {
     pub from_account_id: Option<i64>,
     pub to_account_id: Option<i64>,
@@ -44,7 +44,7 @@ pub struct CreateTransactionRequest {
     pub idempotency_key: Option<String>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize,Deserialize)]
 pub struct TransactionResponse {
     pub id: i64,
     pub from_account_id: Option<i64>,

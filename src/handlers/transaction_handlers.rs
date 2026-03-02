@@ -10,6 +10,16 @@ pub async fn create_transaction(
     Extension(auth): Extension<ApiKeyAuth>,
     Json(req): Json<CreateTransactionRequest>,
 ) -> Result<Json<TransactionResponse>, AppError> {
+    // 1. Check Cache First
+    if let Some(key) = &req.idempotency_key.to_owned() {
+        if let Some(cached_response) = state.idempotency_cache.get(key) {
+            // If found in cache, immediately return the cached response
+            return Ok(
+                Json(serde_json::from_str(&cached_response.body).unwrap()),
+            );
+        }
+    }
+
     // Customer keys must have an account_id
     let account_id = auth
         .account_id
@@ -20,8 +30,14 @@ pub async fn create_transaction(
         .get()
         .map_err(|_| AppError::InternalError("DB connection failed".to_string()))?;
 
-    let response = services::transaction_service::create_transaction(account_id, req, &mut conn)?;
+    let response = services::transaction_service::create_transaction(account_id, req.clone(), &mut conn)?;
 
+    // updating response in cache for future idempotency check.
+    let json_response = serde_json::to_string(&response).unwrap();
+
+    if let Some(key) = &req.idempotency_key {
+        state.idempotency_cache.set(key.clone(), 200, json_response);
+    }
     Ok(Json(response))
 }
 
